@@ -27,6 +27,15 @@ public:
 	UPROPERTY(EditDefaultsOnly)
 	float MaxRopeLength = 1800.f;
 
+	UPROPERTY(EditDefaultsOnly)
+	UAnimationAsset* StartSwingAnim;
+	
+	UPROPERTY(EditDefaultsOnly)
+	UAnimationAsset* SwingAnim;
+
+	UPROPERTY(EditDefaultsOnly)
+	UClass* defaultAnim;
+
 protected:
 	/* Set while we're swinging, the current attach point. */
 	UPROPERTY(BlueprintReadWrite)
@@ -40,6 +49,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	float MaxAngle = 180.f;
 
+	UCharacterMovementComponent* MovementComponent;
 	USkeletalMeshComponent* playerMesh;
 	ARopeHabschCharacter* player;
 	UScanComponent* scanComponent;
@@ -47,10 +57,11 @@ protected:
 	
 	float RopeLength = 0.f;
 	float CurrentAngle = 0.f;
-	FVector SwingDirection;
+	FVector DirToAttachPoint;
 	FVector PlayerVelocity;
 	FVector SwingVelocity;
 	FRotator StartRot;
 
 	void CorrectPlayerRotation();
+	void ApplyForce();
 };

@@ -64,9 +64,10 @@ void ARopeHabschCharacter::BeginPlay()
 void ARopeHabschCharacter::TickActor(float DeltaTime, ELevelTick TickType, FActorTickFunction& ThisTickFunction)
 {
 	Super::TickActor(DeltaTime, TickType, ThisTickFunction);
-
+	
 	swingCoolDown -= DeltaTime;
 	CheckIfShouldRotCorrect();
+	Cable->SetWorldLocation(Mesh->GetSocketTransform("SwingSocket").GetLocation());
 	
 	if(!bIsSwinging && bShouldRotCorrect) //Player let go of rope - correct to initial rotation
 	{
@@ -82,6 +83,7 @@ void ARopeHabschCharacter::TickActor(float DeltaTime, ELevelTick TickType, FActo
 		if(FMath::IsNearlyEqual(lerpedY,InitialRotation.Pitch)) //We're back to initial rot.Y - stop correcting
 		{
 			UE_LOG(LogTemp, Warning, TEXT("DONE"));
+			Mesh->SetAnimInstanceClass(SwingComponent->defaultAnim);
 			InitialRotation = GetActorRotation();
 			bShouldRotCorrect = false;
 		}
@@ -97,6 +99,10 @@ void ARopeHabschCharacter::CheckIfShouldRotCorrect()
 	UKismetSystemLibrary::LineTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + FVector::DownVector * 100, TraceType, false, IgnoreList, EDrawDebugTrace::ForOneFrame, hit, true);
 	if(hit.bBlockingHit)
 	{
+    	GetCameraBoom()->CameraLagSpeed = 50.f;
+		GetCameraBoom()->bEnableCameraLag = false;
+		GetCharacterMovement()->MaxWalkSpeed = 600;
+		
 		bShouldRotCorrect = false;
 	}
 }
@@ -138,13 +144,13 @@ void ARopeHabschCharacter::StartSwing()
 		return;
 	
 	bIsSwinging = true;
-	if(!bShouldRotCorrect) InitialRotation = GetActorRotation();
+	if(!GetMovementComponent()->IsFlying()) InitialRotation = GetActorRotation();
 	SwingComponent->StartSwinging();
 }
 
 void ARopeHabschCharacter::StopSwing()
 {
-	swingCoolDown = 0.3f;
+	swingCoolDown = 0.1f;
 	bIsSwinging = false;
 	bShouldRotCorrect = true;
 	SwingComponent->StopSwinging();

@@ -16,6 +16,7 @@ void URopeHabschSwingComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
+	MovementComponent = GetOwner()->FindComponentByClass<UCharacterMovementComponent>();
 	playerMesh = Cast<USkeletalMeshComponent>(GetOwner()->GetComponentByClass(USkeletalMeshComponent::StaticClass()));
 	scanComponent = Cast<UScanComponent>(GetOwner()->GetComponentByClass(UScanComponent::StaticClass()));
 	player = Cast<ARopeHabschCharacter>(GetOwner());
@@ -31,22 +32,20 @@ void URopeHabschSwingComponent::StartSwinging()
 		
 		CurrentAttach = scanComponent->CurrentAttachPoint;
 		CurrentAttach->CreateRope(GetOwner());
-		
-		UCharacterMovementComponent* MovementComponent = GetOwner()->FindComponentByClass<UCharacterMovementComponent>();
-		MovementComponent->GravityScale = 0.f;
 
 		FVector SwingLocation = CurrentAttach->GetActorLocation();
 		FVector CharacterLocation = GetOwner()->GetActorLocation();
-
 		RopeLength = FMath::Min(FVector::Dist(SwingLocation, CharacterLocation) - 100.f, MaxRopeLength);
-		SwingDirection = (SwingLocation - CharacterLocation).GetSafeNormal();
+		DirToAttachPoint = (SwingLocation - CharacterLocation).GetSafeNormal();
 
-		FQuat CurrentRot = FQuat::FindBetweenVectors(-1.f * SwingDirection, -1.f * FVector::UpVector);
+		FQuat CurrentRot = FQuat::FindBetweenVectors(-1.f * DirToAttachPoint, -1.f * FVector::UpVector);
 		CurrentAngle = CurrentRot.GetAngle();
-		
-		StartRot = UKismetMathLibrary::FindLookAtRotation(player->GetActorLocation(), CurrentAttach->GetActorLocation());
-		GetOwner()->SetActorRotation(StartRot);
 
+		MovementComponent->MaxWalkSpeed = 1000;
+		playerMesh->PlayAnimation(StartSwingAnim, false);
+		player->GetCameraBoom()->bEnableCameraLag = true;
+		player->GetCameraBoom()->CameraLagSpeed = 5.f;
+		
 		player->Cable->SetVisibility(true);
 		player->Cable->SetAttachEndToComponent(CurrentAttach->root);
 		player->Cable->CableLength = RopeLength;
@@ -58,64 +57,36 @@ void URopeHabschSwingComponent::StopSwinging()
 {
 	if (CurrentAttach == nullptr)
 		return;
-
+	
 	CurrentAttach->DestroyRope();
+	auto LaunchVelocity = MovementComponent->Velocity + FVector(0,0, 400);
+	player->LaunchCharacter(LaunchVelocity, false, false);
 	CurrentAttach = nullptr;
-
-	UCharacterMovementComponent* MovementComponent = GetOwner()->FindComponentByClass<UCharacterMovementComponent>();
-	MovementComponent->GravityScale = 1.f;
-
-	MovementComponent->StopMovementImmediately();
-	MovementComponent->AddImpulse(SwingVelocity, true);
-
+	MovementComponent->AirControl = 0.6f;
 	player->Cable->SetVisibility(false);
 }
 
-void URopeHabschSwingComponent::CorrectPlayerRotation()
+void URopeHabschSwingComponent::ApplyForce()
 {
-	FRotator currentRot = player->GetActorRotation();
-	FRotator targetRot = FRotator(player->InitialRotation);
+	FVector CableDirection = FVector(CurrentAttach->GetActorLocation() - player->GetActorLocation());
+	float dot = FVector::DotProduct(MovementComponent->Velocity, CableDirection);
 
-	FQuat newRot = FQuat::Slerp(currentRot.Quaternion(), targetRot.Quaternion(), 0.04);
-	player->SetActorRotation(newRot);
-	//FVector aa = FVector(CurrentAttach->GetActorLocation() - player->GetActorLocation()).GetSafeNormal();
-	//player->SetActorRotation(UKismetMathLibrary::MakeRotFromZ(aa));
+	FVector Force = (CableDirection.GetSafeNormal() * dot) * -1.f; // Calculates the force
+	MovementComponent->AirControl = 5.f;
+
+	player->SetActorRotation(UKismetMathLibrary::MakeRotFromZ(CableDirection)); // FIX ROTATION FSDKUFHUYIDGHF
+	MovementComponent->AddForce(Force);
 }
 
 void URopeHabschSwingComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	PlayerVelocity = player->GetActorLocation() + player->GetMovementComponent()->Velocity;
-	DrawDebugLine(GetWorld(), player->GetActorLocation(),PlayerVelocity, FColor::Magenta, false, 0.f, SDPG_Foreground, 5.f);
+	DrawDebugDirectionalArrow(GetWorld(), player->GetActorLocation(), PlayerVelocity, 100, FColor::Magenta, false, DeltaTime, 0 , 5);
 	
+	//UE_LOG(LogTemp, Log, TEXT("%f"), player->GetMovementComponent()->Velocity.Size());
 	if (CurrentAttach != nullptr)
 	{
-		// Update the angle over time
-		CurrentAngle -= FMath::DegreesToRadians(SwingSpeed) * DeltaTime;
-		
-		// Turn around if we've reached out maximum angle
-		if (CurrentAngle <= -1.f * FMath::DegreesToRadians(MaxAngle))
-		{	
-			CurrentAngle *= -1.f;
-			SwingDirection *= -1.f;
-			//GetOwner()->SetActorRotation(UKismetMathLibrary::MakeRotFromX(SwingDirection));	
-		}
-		
-		// Update the position based on the angle
-		FVector SwingLocation = CurrentAttach->GetActorLocation();
-
-		FVector SwingRightVector = FVector::CrossProduct(SwingDirection, -1.f * FVector::UpVector);
-		FQuat SwingRotation = FQuat(SwingRightVector.GetSafeNormal(), CurrentAngle);
-
-		FVector SwingOffset = FVector(0.f, 0.f, -1.f * RopeLength);
-		SwingOffset = SwingRotation.RotateVector(SwingOffset);
-
-		FVector NewLocation = SwingLocation + SwingOffset;
-		if (DeltaTime > 0.f)
-			SwingVelocity = (NewLocation - GetOwner()->GetActorLocation()) / DeltaTime;
-		GetOwner()->SetActorLocation(NewLocation);
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		// Lerp player rotation back to initial rot
-		CorrectPlayerRotation();
+		ApplyForce();
 	}
 }

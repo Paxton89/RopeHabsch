@@ -21,7 +21,8 @@ void UScanComponent::BeginPlay()
 void UScanComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	
+
+	// FindAttachPoint in center of screen - then check to see if it's close enough
 	currentlyClosest = TNumericLimits<float>::Max();
 	for (auto AttachPoint : AttachPoints)
 	{
@@ -31,7 +32,6 @@ void UScanComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 		{
 			currentlyClosest = distance;
 			CurrentAttachPoint = AttachPoint;
-			//UE_LOG(LogTemp, Log, TEXT("%f"), currentlyClosest);
 		}
 	}
 	
