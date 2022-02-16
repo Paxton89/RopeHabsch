@@ -59,6 +59,7 @@ void ARopeHabschCharacter::BeginPlay()
 	SwingComponent = Cast<URopeHabschSwingComponent>(GetComponentByClass(URopeHabschSwingComponent::StaticClass()));
 	Mesh = Cast<USkeletalMeshComponent>(GetComponentByClass(USkeletalMeshComponent::StaticClass()));
 	Cable = Cast<UCableComponent>(GetComponentByClass(UCableComponent::StaticClass()));
+	InitialRotation = GetActorRotation();
 }
 
 void ARopeHabschCharacter::TickActor(float DeltaTime, ELevelTick TickType, FActorTickFunction& ThisTickFunction)
@@ -73,14 +74,14 @@ void ARopeHabschCharacter::TickActor(float DeltaTime, ELevelTick TickType, FActo
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Correcting"));
 		FRotator currentRotation = GetActorRotation();
-		float lerpedX = UKismetMathLibrary::Lerp(currentRotation.Roll, InitialRotation.Roll, 0.5f);
-		float lerpedY = UKismetMathLibrary::Lerp(currentRotation.Pitch, InitialRotation.Pitch, 0.5f);
-		float lerpedZ = UKismetMathLibrary::Lerp(currentRotation.Yaw, InitialRotation.Yaw, 0.5f);
+		float lerpedX = UKismetMathLibrary::Lerp(currentRotation.Roll, InitialRotation.Roll, 0.9f);
+		float lerpedY = UKismetMathLibrary::Lerp(currentRotation.Pitch, 0, 0.9f);
+		float lerpedZ = UKismetMathLibrary::Lerp(currentRotation.Yaw, 0, 0.9f);
 		
 		FRotator newRot = FRotator(lerpedY, lerpedZ, lerpedX);
 		SetActorRotation(newRot);
 		
-		if(FMath::IsNearlyEqual(lerpedY,InitialRotation.Pitch)) //We're back to initial rot.Y - stop correcting
+		if(FMath::IsNearlyEqual(lerpedX,InitialRotation.Roll)) //We're back to initial rot.X - stop correcting
 		{
 			UE_LOG(LogTemp, Warning, TEXT("DONE"));
 			Mesh->SetAnimInstanceClass(SwingComponent->defaultAnim);
@@ -142,9 +143,8 @@ void ARopeHabschCharacter::StartSwing()
 {
 	if(swingCoolDown > 0)
 		return;
-	
+	//CurrentSwingFacing = FRotator(0,GetActorRotation().Yaw,0);
 	bIsSwinging = true;
-	if(!GetMovementComponent()->IsFlying()) InitialRotation = GetActorRotation();
 	SwingComponent->StartSwinging();
 }
 

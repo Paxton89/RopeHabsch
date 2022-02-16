@@ -26,8 +26,8 @@ void UScanComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	currentlyClosest = TNumericLimits<float>::Max();
 	for (auto AttachPoint : AttachPoints)
 	{
-		auto distance = FVector::Distance(Player->GetActorLocation(), AttachPoint->GetActorLocation());
-		auto dot = FVector::DotProduct(Player->GetFollowCamera()->GetForwardVector(),(AttachPoint->GetActorLocation() - Player->GetActorLocation()).GetSafeNormal());
+		float distance = FVector::Distance(Player->GetActorLocation(), AttachPoint->GetActorLocation());
+		float dot = FVector::DotProduct(Player->GetFollowCamera()->GetForwardVector(),(AttachPoint->GetActorLocation() - Player->GetActorLocation()).GetSafeNormal());
 		if(distance < currentlyClosest && dot > 0.9)
 		{
 			currentlyClosest = distance;
@@ -43,20 +43,20 @@ void UScanComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 void UScanComponent::CollectAllAttachPoints()
 {
 	TArray<AActor*> tempArray;
-	 UGameplayStatics::GetAllActorsOfClass(GetWorld(), ARopeHabschAttachPoint::StaticClass(), tempArray);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ARopeHabschAttachPoint::StaticClass(), tempArray);
 	for (auto item : tempArray)
 	{
 		AttachPoints.Add(Cast<ARopeHabschAttachPoint>(item));
 	}
-	UE_LOG(LogTemp, Warning, TEXT("%d ATTACHPOINTS FOUND"), AttachPoints.Num());
 }
 
 void UScanComponent::MarkClosestAttach(float lifetime, ARopeHabschAttachPoint* AttachPoint)
 {
-	auto distance = FVector::Distance(AttachPoint->GetActorLocation(), Player->GetActorLocation());
-	if (distance < SwingComponent->MaxRopeLength)
+	float distance = FVector::Distance(AttachPoint->GetActorLocation(), Player->GetActorLocation());
+	
+	if (distance < SwingComponent->MaxRopeLength) //Within MaxDistance - LEGAL
 	{
-		DrawDebugBox(
+	DrawDebugBox(
     GetWorld(),
     AttachPoint->GetActorLocation(),
     FVector(100,100,100),
@@ -67,9 +67,9 @@ void UScanComponent::MarkClosestAttach(float lifetime, ARopeHabschAttachPoint* A
     0,
     11);	
 	}
-	else
+	else // NOT Within MaxDistance - ILLEGAL
 	{
-		DrawDebugBox(
+	DrawDebugBox(
 	GetWorld(),
 	AttachPoint->GetActorLocation(),
 	FVector(100,100,100),
