@@ -1,7 +1,9 @@
 
 #include "ScanComponent.h"
 #include "DrawDebugHelpers.h"
+#include "HookPoint.h"
 #include "RopeHabschSwingComponent.h"
+#include "SwingPoint.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -22,6 +24,9 @@ void UScanComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
+	if(Player->bIsSwinging)
+		return;
+	
 	// FindAttachPoint in center of screen - then check to see if it's close enough
 	currentlyClosest = TNumericLimits<float>::Max();
 	for (auto AttachPoint : AttachPoints)
@@ -29,7 +34,7 @@ void UScanComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 		float distance = FVector::Distance(Player->GetActorLocation(), AttachPoint->GetActorLocation());
 		float dot = FVector::DotProduct(Player->GetFollowCamera()->GetForwardVector(),(AttachPoint->GetActorLocation() - Player->GetActorLocation()).GetSafeNormal());
 		if(distance < currentlyClosest && dot > 0.9)
-		{
+		{	
 			currentlyClosest = distance;
 			CurrentAttachPoint = AttachPoint;
 		}
@@ -37,17 +42,25 @@ void UScanComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 	
 	if(CurrentAttachPoint == nullptr)
 		return;
+	
 	MarkClosestAttach(DeltaTime, CurrentAttachPoint);
 }
 
 void UScanComponent::CollectAllAttachPoints()
 {
 	TArray<AActor*> tempArray;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ARopeHabschAttachPoint::StaticClass(), tempArray);
+	TArray<AActor*> tempArray2;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASwingPoint::StaticClass(), tempArray);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AHookPoint::StaticClass(), tempArray2);
 	for (auto item : tempArray)
 	{
 		AttachPoints.Add(Cast<ARopeHabschAttachPoint>(item));
 	}
+	for (auto item : tempArray2)
+	{
+		AttachPoints.Add(Cast<ARopeHabschAttachPoint>(item));
+	}
+	UE_LOG(LogTemp, Warning, TEXT("%d"), AttachPoints.Num());
 }
 
 void UScanComponent::MarkClosestAttach(float lifetime, ARopeHabschAttachPoint* AttachPoint)

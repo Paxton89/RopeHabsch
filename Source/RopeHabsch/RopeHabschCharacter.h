@@ -8,7 +8,9 @@
 
 class URopeHabschSwingComponent;
 class USkeletalMeshComponent;
+class URopeHabsxhHookComponent;
 class UCableComponent;
+class UScanComponent;
 
 UCLASS(config=Game)
 class ARopeHabschCharacter : public ACharacter
@@ -35,7 +37,9 @@ public:
 
 	USceneComponent* root;
 	URopeHabschSwingComponent* SwingComponent;
+	URopeHabsxhHookComponent* HookComponent;
 	USkeletalMeshComponent* Mesh;
+	UScanComponent* ScanComponent;
 	UCableComponent* Cable;
 	
 	float swingCoolDown;
@@ -62,8 +66,8 @@ protected:
 	void MoveRight(float Value);
 
 
-	void StartSwing();
-	void StopSwing();
+	void Interact();
+	void StopInteract();
 	/** 
 	 * Called via input to turn at a given rate. 
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate

@@ -54,7 +54,6 @@ void URopeHabschSwingComponent::StopSwinging()
 	if (CurrentAttach == nullptr)
 		return;
 	
-	//CurrentAttach->DestroyRope();
 	FVector LaunchVelocity = MovementComponent->Velocity + FVector(0,0, 400);
 	player->LaunchCharacter(LaunchVelocity, false, false);
 	CurrentAttach = nullptr;

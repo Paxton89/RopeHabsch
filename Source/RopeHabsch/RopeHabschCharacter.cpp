@@ -13,6 +13,10 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "CableComponent.h"
+#include "HookPoint.h"
+#include "ScanComponent.h"
+#include "SwingPoint.h"
+#include "RopeHabsxhHookComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ARopeHabschCharacter
@@ -57,7 +61,9 @@ void ARopeHabschCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	SwingComponent = Cast<URopeHabschSwingComponent>(GetComponentByClass(URopeHabschSwingComponent::StaticClass()));
+	HookComponent = Cast<URopeHabsxhHookComponent>(GetComponentByClass(URopeHabsxhHookComponent::StaticClass()));
 	Mesh = Cast<USkeletalMeshComponent>(GetComponentByClass(USkeletalMeshComponent::StaticClass()));
+	ScanComponent = Cast<UScanComponent>(GetComponentByClass(UScanComponent::StaticClass()));
 	Cable = Cast<UCableComponent>(GetComponentByClass(UCableComponent::StaticClass()));
 	InitialRotation = GetActorRotation();
 }
@@ -117,8 +123,8 @@ void ARopeHabschCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-	PlayerInputComponent->BindAction("Swing", IE_Pressed, this, &ARopeHabschCharacter::StartSwing);
-	PlayerInputComponent->BindAction("Swing", IE_Released, this, &ARopeHabschCharacter::StopSwing);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ARopeHabschCharacter::Interact);
+	PlayerInputComponent->BindAction("Interact", IE_Released, this, &ARopeHabschCharacter::StopInteract);
 
 	PlayerInputComponent->BindAxis("MoveForward", this, &ARopeHabschCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ARopeHabschCharacter::MoveRight);
@@ -139,20 +145,41 @@ void ARopeHabschCharacter::SetupPlayerInputComponent(class UInputComponent* Play
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ARopeHabschCharacter::OnResetVR);
 }
 
-void ARopeHabschCharacter::StartSwing()
+void ARopeHabschCharacter::Interact()
 {
 	if(swingCoolDown > 0)
 		return;
-	bIsSwinging = true;
-	SwingComponent->StartSwinging();
+	if(ScanComponent->CurrentAttachPoint == nullptr)
+		return;
+		
+	if(ScanComponent->CurrentAttachPoint->IsA(ASwingPoint::StaticClass()))
+	{
+		bIsSwinging = true;
+		SwingComponent->StartSwinging();	
+	}
+	else if(ScanComponent->CurrentAttachPoint->IsA(AHookPoint::StaticClass()))
+	{
+		HookComponent->StartHook();
+	}
 }
 
-void ARopeHabschCharacter::StopSwing()
+void ARopeHabschCharacter::StopInteract()
 {
+	if(ScanComponent->CurrentAttachPoint == nullptr)
+		return;
+	
 	swingCoolDown = 0.1f;
-	bIsSwinging = false;
-	bShouldRotCorrect = true;
-	SwingComponent->StopSwinging();
+	
+	if(ScanComponent->CurrentAttachPoint->IsA(ASwingPoint::StaticClass()))
+	{
+		bIsSwinging = false;
+		bShouldRotCorrect = true;
+		SwingComponent->StopSwinging();	
+	}
+	else if(ScanComponent->CurrentAttachPoint->IsA(AHookPoint::StaticClass()))
+	{
+		HookComponent->StopHook();
+	}
 }
 
 void ARopeHabschCharacter::OnResetVR()
