@@ -12,8 +12,8 @@ class ARopeHabschAttachPoint : public AActor
 public:
 	ARopeHabschAttachPoint();
 
-	void CreateRope(AActor* AttachedTo);
-	void DestroyRope();
+	//void CreateRope(AActor* AttachedTo);
+	//void DestroyRope();
 	virtual void BeginPlay() override;
 	USceneComponent* root;
 };

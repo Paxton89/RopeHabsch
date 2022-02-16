@@ -42,7 +42,6 @@ public:
 	bool bIsSwinging = false;
 	bool bShouldRotCorrect = false;
 	FRotator InitialRotation;
-	FRotator CurrentSwingFacing;
 
 	UFUNCTION(BlueprintImplementableEvent)
     void ConnectCable();

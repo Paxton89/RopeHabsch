@@ -11,6 +11,7 @@ void ARopeHabschAttachPoint::BeginPlay()
 {
 }
 
+/*
 void ARopeHabschAttachPoint::CreateRope(AActor* AttachTo)
 {
 }
@@ -18,3 +19,4 @@ void ARopeHabschAttachPoint::CreateRope(AActor* AttachTo)
 void ARopeHabschAttachPoint::DestroyRope()
 {
 }
+*/

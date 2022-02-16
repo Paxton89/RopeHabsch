@@ -143,7 +143,6 @@ void ARopeHabschCharacter::StartSwing()
 {
 	if(swingCoolDown > 0)
 		return;
-	//CurrentSwingFacing = FRotator(0,GetActorRotation().Yaw,0);
 	bIsSwinging = true;
 	SwingComponent->StartSwinging();
 }
