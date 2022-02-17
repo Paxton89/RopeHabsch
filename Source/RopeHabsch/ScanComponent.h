@@ -1,11 +1,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "RopeHabschAttachPoint.h"
-#include "RopeHabschCharacter.h"
 #include "Components/ActorComponent.h"
 #include "ScanComponent.generated.h"
 
+class ARopeHabschAttachPoint;
+class ARopeHabschCharacter;
+class URopeHabschSwingComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ROPEHABSCH_API UScanComponent : public UActorComponent
@@ -27,9 +28,5 @@ protected:
 	URopeHabschSwingComponent* SwingComponent;
 	TArray<ARopeHabschAttachPoint*> AttachPoints;
 
-	float currentlyClosest;
-	
-public:	
-	
-		
+	float currentlyClosest;	
 };

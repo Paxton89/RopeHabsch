@@ -1,12 +1,13 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "RopeHabschAttachPoint.h"
-#include "ScanComponent.h"
 #include "RopeHabschSwingComponent.generated.h"
 
 class ARopeHabschCharacter;
 class USkeletalMeshComponent;
+class UScanComponent;
+class UCharacterMovementComponent;
+class ARopeHabschAttachPoint;
 
 UCLASS(BlueprintType, Meta=(BlueprintSpawnableComponent))
 

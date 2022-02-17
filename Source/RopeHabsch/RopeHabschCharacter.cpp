@@ -5,6 +5,7 @@
 #include "RopeHabschSwingComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "CableComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
@@ -12,7 +13,6 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "CableComponent.h"
 #include "HookPoint.h"
 #include "ScanComponent.h"
 #include "SwingPoint.h"
@@ -104,7 +104,7 @@ void ARopeHabschCharacter::CheckIfShouldRotCorrect()
 	IgnoreList.Add(Cast<AActor>(this));
 	ETraceTypeQuery TraceType = UEngineTypes::ConvertToTraceType(ECC_WorldDynamic);
 	UKismetSystemLibrary::LineTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + FVector::DownVector * 100, TraceType, false, IgnoreList, EDrawDebugTrace::ForOneFrame, hit, true);
-	if(hit.bBlockingHit)
+	if(hit.bBlockingHit) //We hit ground, Reset Camera & WalkSpeed - Stop RotCorrecting
 	{
     	GetCameraBoom()->CameraLagSpeed = 50.f;
 		GetCameraBoom()->bEnableCameraLag = false;
@@ -152,12 +152,12 @@ void ARopeHabschCharacter::Interact()
 	if(ScanComponent->CurrentAttachPoint == nullptr)
 		return;
 		
-	if(ScanComponent->CurrentAttachPoint->IsA(ASwingPoint::StaticClass()))
+	if(ScanComponent->CurrentAttachPoint->IsA(ASwingPoint::StaticClass())) //Are we attaching to a SwingPoint?
 	{
 		bIsSwinging = true;
 		SwingComponent->StartSwinging();	
 	}
-	else if(ScanComponent->CurrentAttachPoint->IsA(AHookPoint::StaticClass()))
+	else if(ScanComponent->CurrentAttachPoint->IsA(AHookPoint::StaticClass())) //Are we attaching to a HookPoint?
 	{
 		HookComponent->StartHook();
 	}
@@ -170,13 +170,13 @@ void ARopeHabschCharacter::StopInteract()
 	
 	swingCoolDown = 0.1f;
 	
-	if(ScanComponent->CurrentAttachPoint->IsA(ASwingPoint::StaticClass()))
+	if(ScanComponent->CurrentAttachPoint->IsA(ASwingPoint::StaticClass())) // Stop Swinging
 	{
 		bIsSwinging = false;
 		bShouldRotCorrect = true;
 		SwingComponent->StopSwinging();	
 	}
-	else if(ScanComponent->CurrentAttachPoint->IsA(AHookPoint::StaticClass()))
+	else if(ScanComponent->CurrentAttachPoint->IsA(AHookPoint::StaticClass())) // Stop Hooking
 	{
 		HookComponent->StopHook();
 	}

@@ -2,9 +2,11 @@
 #include "ScanComponent.h"
 #include "DrawDebugHelpers.h"
 #include "HookPoint.h"
+#include "Camera/CameraComponent.h"
+#include "RopeHabschAttachPoint.h"
 #include "RopeHabschSwingComponent.h"
 #include "SwingPoint.h"
-#include "Camera/CameraComponent.h"
+#include "RopeHabschCharacter.h"
 #include "Kismet/GameplayStatics.h"
 
 UScanComponent::UScanComponent()

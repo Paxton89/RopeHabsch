@@ -3,6 +3,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "CableComponent.h"
+#include "ScanComponent.h"
+#include "RopeHabschAttachPoint.h"
 #include "RopeHabschCharacter.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -37,11 +39,13 @@ void URopeHabschSwingComponent::StartSwinging()
 		FVector CharacterLocation = GetOwner()->GetActorLocation();
 		RopeLength = FMath::Min(FVector::Dist(SwingLocation, CharacterLocation) - 100.f, MaxRopeLength);
 
+		//Camera + Animation
 		MovementComponent->MaxWalkSpeed = 1000;
 		playerMesh->PlayAnimation(StartSwingAnim, false);
 		player->GetCameraBoom()->bEnableCameraLag = true;
 		player->GetCameraBoom()->CameraLagSpeed = 5.f;
-		
+
+		//Cable
 		player->Cable->SetVisibility(true);
 		player->Cable->SetAttachEndToComponent(CurrentAttach->root);
 		player->Cable->CableLength = RopeLength;
@@ -68,7 +72,8 @@ void URopeHabschSwingComponent::ApplyForce()
 	FVector Force = (CableDirection.GetSafeNormal() * dot) * -1.f; // Calculates the force
 	
 	MovementComponent->AirControl = 5.f;
-	
+
+	//Set rotation of player
 	FRotator newRot = UKismetMathLibrary::FindLookAtRotation(player->GetActorLocation(), player->GetActorLocation() + PlayerVelocity);
 	player->SetActorRotation(newRot);
 	MovementComponent->AddForce(Force);
@@ -77,6 +82,8 @@ void URopeHabschSwingComponent::ApplyForce()
 void URopeHabschSwingComponent::TickComponent(float DeltaTime, enum ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	//Draw Velocity
 	PlayerVelocity = player->GetMovementComponent()->Velocity;
 	DrawDebugDirectionalArrow(GetWorld(), player->GetActorLocation(), player->GetActorLocation() + PlayerVelocity, 100, FColor::Turquoise, false, DeltaTime, 0 , 5);
 	

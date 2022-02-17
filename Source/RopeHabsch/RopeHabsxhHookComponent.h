@@ -1,12 +1,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "RopeHabschAttachPoint.h"
-#include "RopeHabschCharacter.h"
 #include "Components/ActorComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "RopeHabsxhHookComponent.generated.h"
 
+class ARopeHabschCharacter;
+class UScanComponent;
+class URopeHabschSwingComponent;
+class ARopeHabschAttachPoint;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ROPEHABSCH_API URopeHabsxhHookComponent : public UActorComponent

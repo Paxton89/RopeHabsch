@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CableComponent.h"
 #include "GameFramework/Actor.h"
 #include "RopeHabschAttachPoint.generated.h"
 
